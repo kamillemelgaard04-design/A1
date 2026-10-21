@@ -4,7 +4,38 @@
 #include <pthread.h>
 
 struct job_queue {
-  int dummy;
+  // Using a void pointer for the buffer allows the job queue to store any type of data.
+  void **buffer;
+
+  // The maximum size of the job queue.
+  int capacity;
+
+  // The current number of elements in the job queue.
+  int size;
+
+  // Index of the first element in the job queue.
+  int first;
+
+  // Index of where the next element in the job queue ((first + size) % capacity).
+  int next;
+
+  // Flag to indicate if the job queue is dying.
+  int dying;
+
+  // Flag to indicate if there are threads waiting.
+  int waiting;
+
+  // Mutex to protect access to the job queue.
+  pthread_mutex_t mutex;
+
+  // Condition variable to signal when the job queue is not empty. Pop is waiting here when the queue is empty.
+  pthread_cond_t not_empty;
+
+  // Condition variable to signal when the job queue is not full. Push is waiting here when the queue is full.
+  pthread_cond_t not_full;
+
+  // Condition variable to signal when the job queue is empty. Destroy is waiting here when the queue is not empty.
+  pthread_cond_t empty;
 };
 
 // Initialise a job queue with the given capacity.  The queue starts out
